@@ -1,7 +1,7 @@
 //-*- js-mode -*-
 
 /*jslint browser: true, devel: true, es5: true */
-/*global setDiv, makeTag, cartesianProduct, makeButton, setTagOpt, setTagSty, getDiv, makeValCheck, flatten1, compareNumbers, newButtonOpts, setClickHandler, setOnClick, betterBezier, smallSet, unescape, cnv, cnvelm, repeatTxt, makeButt */
+/*global setDiv, makeTag, cartesianProduct, makeButton, setTagOpt, setTagSty, getDiv, makeValCheck, flatten1, compareNumbers, newButtonOpts, setClickHandler, setOnClick, betterBezier, smallSet, unescape, cnv, cnvelm, repeatTxt, makeButt, Matrix, detSize */
 
 var wdth, hght, cntrHt, cntrWd, sideDev, upDev, dnDev, crcSep, mrgn, vmrgn;
 var labelhtml, posLab, charLab, posCent, drawArc, pi, pieces, rad, posRect;
@@ -11,6 +11,7 @@ var numOffV, numOffH, sin30, cos30, sqrt3, mode, memStack, smllst, emptySet;
 var drawVenn, shadeRegion, reShadeAll, addColors, drawInkInd, setShadeClrFun;
 var reDrawAll, rePrintSizesAll, reDrawAll, cnvArc, chooseMode;
 var uUnion = "\u222a", uInter = "\u2229"; 
+var puzzleMode = false, lstAll, numAtomic, numPieces;
 
 // // set text (value option) of tag with ID id to value val
 // function setTagTxt( id, txt ){
@@ -19,16 +20,21 @@ var uUnion = "\u222a", uInter = "\u2229";
 //     el.value = unescape( txt );
 // }
 
-var data, vals2, vals3, names, windowWidth, windowHeight;
-data = JSON.parse( unescape( window.location.search.slice( 1 ) ) );
-if ( data.width !== undefined ){
-    windowWidth = data.width;
-    windowHeight = data.height;
-}else {
-    windowWidth = window.innerWidth;
-    windowHeight = window.innerHeight;
+function nullFun(){
+"use strict";
 }
 
+var data, vals2, vals3, names, windowWidth, windowHeight;
+if (  window.location.search.slice( 1 ) !== "" ){
+    data = JSON.parse( unescape( window.location.search.slice( 1 ) ) );
+    if ( data.width !== undefined ){
+	windowWidth = data.width;
+	windowHeight = data.height;
+    }}
+if (  window.location.search.slice( 1 ) === "" || data.width === undefined){
+	windowWidth = window.innerWidth;
+	windowHeight = window.innerHeight;
+}
 
 memStack = [];
 mode = "Shade";
@@ -71,6 +77,11 @@ bopts.idtext = "bt2or3";
 bopts.fontSize = "small";
 bopts.width = 0.10 * windowWidth;
 controlsHTML += "<br>" + makeButt( bopts );
+
+bopts.text = "WS";
+bopts.idtext = "btWSPuz";
+controlsHTML += "<br>" + makeButt( bopts );
+
 bopts.text = "Clear Shading";
 bopts.idtext = "btClearShading";
 bopts.bgColor = "White";
@@ -419,7 +430,131 @@ function sizeFromDiff( ev ){
 		pieces[ id2 ].size = sz2;
 		pieces[ id2 ].showSize = true;
 		pieces[ id2 ].printSize();
-	    }
-	}
+	    }}}}
+
+// return vector of components of atomic pieces from given piece
+function pcListToVector( lst ){
+    "use strict";
+    var res = lstAll.clone();
+    function fun( p, i ){
+	if ( lst.has( p ) ){ 
+	    res[ i ] = 1; }
+	else {
+	    res[ i ] = 0;}}
+    lstAll.forEach( fun );
+    return( res );
+}
+
+
+var county = {};
+county.edges = [];
+county.ccw = [];
+county.color = "White";
+county.comprises = [];
+county.size = "?";
+county.sizeLoc = { "x": undefined, "y": undefined };
+county.printSize = nullFun;
+county.sizeLine = nullFun;
+county.showSize = false;
+county.vector = [ 0, 0, 0, 0];
+county.sizeSecret = "?";
+
+function newCounty( es, os, cmp, x, y ){
+    "use strict";
+    var res, loc;
+    if ( !x ){
+	x = 0;
+	y = 0;
     }
+    loc = { "x": x, "y": y };
+    res = Object.create( county );
+    res.edges = es;
+    res.ccw = os;
+    res.comprises = cmp;
+    res.sizeLoc = loc;
+    res.vector = pcListToVector( cmp );
+    return res;
+} 
+
+// pick 4 random pieces
+function pickRandomPieces(){
+    "use strict";
+    var res = [], i = 0, n = 0, p, x;
+    for ( x in pieces ){
+	if ( typeof( pieces[ x ] ) !== 'function' ){
+	    p = ( numAtomic - n ) / ( numPieces - i );
+	    if ( Math.random() < p ){
+		res.push( pieces[ x ] );
+		n += 1;}
+	    i += 1;}}
+    return( res );
+}
+
+// check that the given list of pieces spans:
+// the cooresponding vectors form a matrix of full rank
+function checkInfo( lst ){
+    "use strict";
+    var mat = Matrix.create( lst.map( function( x ){ return( x.vector ); } ) );
+    return( mat.rank() === lstAll.length );}
+
+//returns a list of 4 pieces with enough info
+function formPuzzle(){
+    "use strict";
+    var res;
+    do { 
+	res = pickRandomPieces(); } 
+    while ( !checkInfo( res ) );
+
+    return( res );
+}
+
+// form and display givens of puzzle
+function initPuzzle(){
+    "use strict";
+    var puzlst = formPuzzle(), 
+        max = 20,
+        basis = [],
+        i, p;
+    //puzlst.forEach(function(x){console.log(x.vector);});
+    resetSizes();
+    for ( i = 0; i < numAtomic; i += 1 ){
+	basis.push( Math.floor( Math.random() * max ) ); }
+    lstAll.forEach( function( x, i ){
+	pieces[ x ].size = basis[ i ]; } );
+    for ( p in pieces ){
+	if ( typeof( pieces[ p ] ) !== 'function' ){
+	    pieces[ p ].sizeSecret =  detSize( pieces[ p ].comprises );}}
+    lstAll.forEach( function( x, i ){
+	pieces[ x ].size = "?"; } );
+    puzlst.forEach( function( x, i ){
+	x.size = x.sizeSecret;
+	x.showSize = true; } );
+    reDrawAll();
+}
+
+// write size n at given location 
+function writeSize( reg ){
+    "use strict";
+    if ( !reg.showSize ){
+	return;
+    }
+    var n, x, y;
+    n= reg.size;
+    x = reg.sizeLoc.x;
+    y = reg.sizeLoc.y;
+    cnv.font = 'italic 40px Times';
+    cnv.fillStyle = "Black";
+    if ( puzzleMode && reg.sizeSecret !== parseInt( n, 10 ) ){
+	    cnv.fillStyle = "Red";}
+
+    cnv.fillText( String( n ), x - numOffH, y - numOffV );
+    reg.sizeLine();
+}
+
+function toggleWSPuz(){
+    "use strict";
+    puzzleMode = !puzzleMode;
+    setTagOpt( "btWSPuz", "value", puzzleMode ? "Puzzle" : "WS" );
+    drawInkInd();
+    if ( puzzleMode ){ initPuzzle(); }
 }

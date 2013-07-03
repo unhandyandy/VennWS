@@ -10,7 +10,7 @@
 //functions:
 /*global drawVenn, shadeRegion, reShadeAll, addColors, drawInkInd, setShadeClrFun */
 /*global reDrawAll, rePrintSizesAll, reDrawAll, cnvArc */
-/*global drawSizeLine, ssUnion, checkIntQ, resetSizes, toggleMode, stackPop, stackPush, sizeFromSum, sizeFromDiff, toggleChooseMode, chooseMode */
+/*global drawSizeLine, ssUnion, checkIntQ, resetSizes, toggleMode, stackPop, stackPush, sizeFromSum, sizeFromDiff, toggleChooseMode, chooseMode, toggleWSPuz */
 
 var cnv, cnvelm;
 
@@ -271,53 +271,12 @@ cnvArc( posCent.C.x, posCent.C.y, rad, 0, pi / 3, f ); },
     'Rect': drawRect
 };
 
-// write size n at given location 
-function writeSize( reg ){
-    "use strict";
-    if ( !reg.showSize ){
-	return;
-    }
-    var n, x, y;
-    n= reg.size;
-    x = reg.sizeLoc.x;
-    y = reg.sizeLoc.y;
-    cnv.font = 'italic 40px Times';
-    cnv.fillStyle = "Black";
-    cnv.fillText( String( n ), x - numOffH, y - numOffV );
-    reg.sizeLine();
-}
 
 function nullFun(){
 "use strict";
 }
 
-var county = {};
-county.edges = [];
-county.ccw = [];
-county.color = "White";
-county.comprises = [];
-county.size = "?";
-county.sizeLoc = { "x": undefined, "y": undefined };
-county.printSize = reDrawAll;
-county.sizeLine = nullFun;
-county.showSize = false;
-
-function newCounty( es, os, cmp, x, y ){
-    "use strict";
-    var res, loc;
-    if ( !x ){
-	x = 0;
-	y = 0;
-    }
-    loc = { "x": x, "y": y };
-    res = Object.create( county );
-    res.edges = es;
-    res.ccw = os;
-    res.comprises = cmp;
-    res.sizeLoc = loc;
-    return res;
-} 
-
+lstAll = [ "ABC", "ABc", "AbC", "Abc", "aBC", "aBc", "abC", "abc" ].sort();
 
 pieces = {
     "ABC": newCounty( [ "Abc", "Bac", "Cab" ], [ false, false, false ],
@@ -535,6 +494,10 @@ function reDrawAll( ){
     drawVenn();
 }
 
+// fill in missing method
+county.printSize = reDrawAll;
+
+
 // carry out union, intersection, or comp
 function performOp( opfun ){
     "use strict";
@@ -640,6 +603,10 @@ function drawInkInd( clr ){
     }
 }
 
+//number of atomic pieces
+var numAtomic = lstAll.length;
+//number of all pieces
+var numPieces = 20;
 
 
 
@@ -677,10 +644,11 @@ function toTwo( ){
 // fill on values passed from other page 
 function fillPassedValues( ){
     "use strict";
-    var data, vals2, vals3, datastr, names;
-    datastr = unescape( window.location.search.slice( 1 ) );
-    if ( datastr.length !== 3 ){ return; }
-    data = JSON.parse( datastr );
+    var data, dataStr, vals2, vals3, datastr, names;
+    dataStr = unescape( window.location.search.slice( 1 ) );
+    if ( dataStr === "" ){ return; }
+    data = JSON.parse( dataStr );
+    if ( data.length !== 3 ){ return; }
     vals2 = data[0];
     vals3 = data[1];
     names = data[2];
@@ -734,6 +702,7 @@ function initPage(  ){
     setOnClick( "btSizeSum", sizeFromSum );
     setOnClick( "btSizeDiff", sizeFromDiff );
     setOnClick( "bt2or3", toTwo );
+    setOnClick( "btWSPuz", toggleWSPuz );
 
     cnvelm.addEventListener( 'click', mouseHandler, false );
 

@@ -12,6 +12,7 @@
 //functions:default
 /*global drawVenn, shadeRegion, reShadeAll, addColors, drawInkInd, setShadeClrFun */
 /*global reDrawAll, rePrintSizesAll, reDrawAll, cnvArc, checkIntQ */
+/*global puzzleMode, writeSize, toggleWSPuz */
 
 var cnv, cnvelm;
 
@@ -177,11 +178,12 @@ function mouseHandler( ev ){
 	shadeRegion( reg );
     } else {
 	//if ( !pieces[ reg ].showSize ){
-	    pieces[ reg ].showSize = true;
-	    pieces[ reg ].printSize();
+	//    pieces[ reg ].showSize = true;
+	//    pieces[ reg ].printSize();
 	//} else {
 	    num = prompt( "Size = " );
 	    if ( num !== null ){
+		pieces[ reg ].showSize = true;
 		pieces[ reg ].size = num;
 		pieces[ reg ].printSize();
 	    }
@@ -219,52 +221,11 @@ cnvArc( posCent.B.x, posCent.B.y, rad, 2 * pi / 3, 4 * pi / 3, f ); },
     'Rect': drawRect
 };
 
-// write size n at given location 
-function writeSize( reg ){
-    "use strict";
-    if ( !reg.showSize ){
-	return;
-    }
-    var n, x, y;
-    n= reg.size;
-    x = reg.sizeLoc.x;
-    y = reg.sizeLoc.y;
-    cnv.font = 'italic 40px Times';
-    cnv.fillStyle = "Black";
-    cnv.fillText( String( n ), x - numOffH, y - numOffV );
-    reg.sizeLine();
-}
 
-function nullFun(){
-"use strict";
-}
 
-var county = {};
-county.edges = [];
-county.ccw = [];
-county.color = "White";
-county.comprises = [];
-county.size = "?";
-county.sizeLoc = { "x": undefined, "y": undefined };
-county.printSize = reDrawAll;
-county.sizeLine = nullFun;
-county.showSize = false;
+// list of all atomic pieces
+var lstAll = [ "AB", "Ab", "aB", "ab" ].sort();
 
-function newCounty( es, os, cmp, x, y ){
-    "use strict";
-    var res, loc;
-    if ( !x ){
-	x = 0;
-	y = 0;
-    }
-    loc = { "x": x, "y": y };
-    res = Object.create( county );
-    res.edges = es;
-    res.ccw = os;
-    res.comprises = cmp;
-    res.sizeLoc = loc;
-    return res;
-} 
 
 
 pieces = {
@@ -318,6 +279,7 @@ pieces.AuB.ss = regToSS( pieces.AuB );
 pieces.U.ss = regToSS( pieces.U );
 pieces.A.ss = regToSS( pieces.A );
 pieces.B.ss = regToSS( pieces.B );
+
 
 
 // shade region outside figure-8
@@ -411,6 +373,10 @@ function reDrawAll( ){
     rePrintSizesAll();
     drawVenn();
 }
+
+// fill in missing method
+county.printSize = reDrawAll;
+
 
 // carry out union, intersection, or comp
 function performOp( opfun ){
@@ -510,6 +476,10 @@ function drawInkInd( clr ){
     }
 }
 
+//number of atomic pieces
+var numAtomic = lstAll.length;
+//number of all pieces
+var numPieces = 8;
 
 
 // pack data about A and B 
@@ -598,6 +568,7 @@ function initPage(  ){
     setOnClick( "btSizeSum", sizeFromSum );
     setOnClick( "btSizeDiff", sizeFromDiff );
     setOnClick( "bt2or3", toThree );
+    setOnClick( "btWSPuz", toggleWSPuz );
 
     cnvelm.addEventListener( 'click', mouseHandler, false );
     
