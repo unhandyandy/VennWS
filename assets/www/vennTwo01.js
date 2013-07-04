@@ -485,19 +485,15 @@ var numPieces = 8;
 // pack data about A and B 
 function packData(  ){
     "use strict";
-    var data2, data3, datastr, names;
+    var data2, data3, datastr;
     data2 = { "A": pieces.A.size,
 	      "B": pieces.B.size,
 	      "AuB": pieces.AuB.size,
 	      "U": pieces.U.size,
 	      "AB": pieces.AB.size
 	   };
-    names = { "A": charLab.A,
-	      "B": charLab.B,
-	      "C": charLab.C
-	    };
     data3 = passedVals3;
-    datastr = JSON.stringify( [ data2, data3, names ] );
+    datastr = JSON.stringify( [ data2, data3 ] );
     return escape( datastr );
 }
 
@@ -513,23 +509,18 @@ function fillPassedValues( ){
     "use strict";
     var data, vals2, vals3, names;
     data = JSON.parse( unescape( window.location.search.slice( 1 ) ) );
-    if ( data.length !== 3 ){
+    if ( data.length !== 2 ){
 	return;
 }
     vals2 = data[0];
     vals3 = data[1];
-    names = data[2];
     function fillF( v, n ){
 	if ( checkIntQ( v ) ){
 	    pieces[ n ].size = v;
 	    pieces[ n ].showSize = true;
 	}
     }
-    function fillNames( v, n ){
-	charLab[ n ] = v;
-    }
     vals2.forEach( fillF );
-    names.forEach( fillNames );
     passedVals3 = vals3;
 }
 

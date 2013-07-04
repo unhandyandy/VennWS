@@ -613,7 +613,7 @@ var numPieces = 20;
 // pack data about A and B 
 function packData(  ){
     "use strict";
-    var data2, data3, datastr, names;
+    var data2, data3, datastr;
     data2 = { "A": pieces.A.size,
 	     "B": pieces.B.size,
 	     "AuB": pieces.AuB.size,
@@ -623,15 +623,11 @@ function packData(  ){
 	     "aB": ( checkIntQ( pieces.aBC.size ) && checkIntQ( pieces.aBc.size ) ) ? parseInt( pieces.aBC.size, 10 ) + parseInt( pieces.aBc.size, 10 ) : "?"
 	   };
     data3 = {};
-    names = { "A": charLab.A,
-	      "B": charLab.B,
-	      "C": charLab.C
-	    };
     function fillF( r, n ){
 	data3[ n ] = r.size;
     }
     pieces.forEach( fillF );
-    datastr = JSON.stringify( [ data2, data3, names ] );
+    datastr = JSON.stringify( [ data2, data3 ] );
     return escape( datastr );
 }
 
@@ -648,22 +644,17 @@ function fillPassedValues( ){
     dataStr = unescape( window.location.search.slice( 1 ) );
     if ( dataStr === "" ){ return; }
     data = JSON.parse( dataStr );
-    if ( data.length !== 3 ){ return; }
+    if ( data.length !== 2 ){ return; }
     vals2 = data[0];
     vals3 = data[1];
-    names = data[2];
     function fillF( v, n ){
 	if ( checkIntQ( v ) ){
 	    pieces[ n ].size = v;
 	    pieces[ n ].showSize = true;
 	}
     }
-    function fillNames( v, n ){
-	charLab[ n ] = v;
-    }
     vals3.forEach( fillF );
     vals2.forEach( fillF );
-    names.forEach( fillNames );
 }
 
 // init canvas and rest of page
