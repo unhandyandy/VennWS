@@ -10,7 +10,7 @@
 //functions:
 /*global drawVenn, shadeRegion, reShadeAll, addColors, drawInkInd, setShadeClrFun */
 /*global reDrawAll, rePrintSizesAll, reDrawAll, cnvArc */
-/*global drawSizeLine, ssUnion, checkIntQ, resetSizes, toggleMode, stackPop, stackPush, sizeFromSum, sizeFromDiff, toggleChooseMode, chooseMode, toggleWSPuz */
+/*global drawSizeLine, ssUnion, checkIntQ, resetSizes, toggleMode, stackPop, stackPush, sizeFromSum, sizeFromDiff, toggleChooseMode, chooseMode, toggleWSPuz, writeSize */
 
 var cnv, cnvelm;
 
@@ -608,26 +608,38 @@ var numAtomic = lstAll.length;
 //number of all pieces
 var numPieces = 20;
 
-
+//make the list of sets to pass to VennTwo
+function whichTwo(){
+    "use strict";
+    if ( pieces.Abc.color === "White" ){
+	return( [ "B", "C" ] );}
+    else if ( pieces.aBc.color !== "White" ) {
+	return( [ "A", "B" ] );}
+    else {
+	return( [ "A", "C" ] );}
+}
 
 // pack data about A and B 
 function packData(  ){
     "use strict";
-    var data2, data3, datastr;
-    data2 = { "A": pieces.A.size,
-	     "B": pieces.B.size,
-	     "AuB": pieces.AuB.size,
-	     "U": pieces.U.size,
-	     "AB": pieces.AB.size,
+    var data2, data3, datastr, lbllst;
+    lbllst = whichTwo();
+    data2 = { 
 	     "Ab": ( checkIntQ( pieces.AbC.size ) && checkIntQ( pieces.Abc.size ) ) ? parseInt( pieces.AbC.size, 10 ) + parseInt( pieces.Abc.size, 10 ): "?",
-	     "aB": ( checkIntQ( pieces.aBC.size ) && checkIntQ( pieces.aBc.size ) ) ? parseInt( pieces.aBC.size, 10 ) + parseInt( pieces.aBc.size, 10 ) : "?"
+	     "aB": ( checkIntQ( pieces.aBC.size ) && checkIntQ( pieces.aBc.size ) ) ? parseInt( pieces.aBC.size, 10 ) + parseInt( pieces.aBc.size, 10 ) : "?",
+
+	     "Ac": ( checkIntQ( pieces.Abc.size ) && checkIntQ( pieces.ABc.size ) ) ? parseInt( pieces.Abc.size, 10 ) + parseInt( pieces.ABc.size, 10 ): "?",
+	     "aC": ( checkIntQ( pieces.aBC.size ) && checkIntQ( pieces.abC.size ) ) ? parseInt( pieces.aBC.size, 10 ) + parseInt( pieces.abC.size, 10 ) : "?",
+
+	     "bC": ( checkIntQ( pieces.AbC.size ) && checkIntQ( pieces.abC.size ) ) ? parseInt( pieces.AbC.size, 10 ) + parseInt( pieces.abC.size, 10 ): "?",
+	     "Bc": ( checkIntQ( pieces.aBc.size ) && checkIntQ( pieces.ABc.size ) ) ? parseInt( pieces.aBc.size, 10 ) + parseInt( pieces.ABc.size, 10 ) : "?"
 	   };
     data3 = {};
     function fillF( r, n ){
 	data3[ n ] = r.size;
     }
     pieces.forEach( fillF );
-    datastr = JSON.stringify( [ data2, data3 ] );
+    datastr = JSON.stringify( [ lbllst, data2, data3 ] );
     return escape( datastr );
 }
 

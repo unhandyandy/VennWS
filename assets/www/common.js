@@ -38,7 +38,7 @@ if (  window.location.search.slice( 1 ) === "" || data.width === undefined){
 
 memStack = [];
 mode = "Shade";
-chooseMode = "Union";
+chooseMode = "Inter";
 numOffH = 16;
 numOffV = 4;
 pi = Math.PI; 

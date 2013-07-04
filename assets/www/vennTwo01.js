@@ -482,16 +482,55 @@ var numAtomic = lstAll.length;
 var numPieces = 8;
 
 
+
+//Translate from original label names to left = A and right = B.
+function translateLabelCharFrom( c ){
+    "use strict";
+    var res = "";
+    if ( c === charLab.A ){ 
+	res = "A";}
+    else if ( c === charLab.B ){
+	res = "B";}
+    else if ( c === charLab.A.toLowerCase() ){
+	res = "a";}
+    else if ( c === charLab.B.toLowerCase() ){
+	res = "b";}
+    return( res );
+}
+//Translate to original label names from left = A and right = B.
+function translateLabelCharTo( c ){
+    "use strict";
+    var res = "";
+    if ( c === "A" ){ 
+	res = charLab.A;}
+    else if ( c === "B" ){
+	res = charLab.B ;}
+    else if ( c === "a" ){
+	res = charLab.A.toLowerCase();}
+    else if ( c ===  "b"){
+	res = charLab.B.toLowerCase();}
+    return( res );
+}
+
+function translateStrFrom ( str ){
+    "use strict";
+    return( str.replace( /./g, translateLabelCharFrom ) );}
+
+function translateStrTo ( str ){
+    "use strict";
+    return( str.replace( /./g, translateLabelCharTo ) );}
+
 // pack data about A and B 
 function packData(  ){
     "use strict";
     var data2, data3, datastr;
-    data2 = { "A": pieces.A.size,
-	      "B": pieces.B.size,
-	      "AuB": pieces.AuB.size,
-	      "U": pieces.U.size,
-	      "AB": pieces.AB.size
-	   };
+    data2 = {};
+    data2[ translateStrFrom( "A" ) ]  = pieces.A.size;
+    data2[ translateStrFrom( "B" ) ]  = pieces.B.size;
+    data2[ translateStrFrom( "AuB" ) ]  = pieces.AuB.size;
+    data2[ translateStrFrom( "U" ) ]  =	pieces.U.size;
+    data2[ translateStrFrom( "AB" ) ]  = pieces.AB.size;
+
     data3 = passedVals3;
     datastr = JSON.stringify( [ data2, data3 ] );
     return escape( datastr );
@@ -504,23 +543,30 @@ function toThree( ){
     window.location = "./venn01.html?" + packData();
 }
 
+
 // fill on values passed from other page 
 function fillPassedValues( ){
     "use strict";
-    var data, vals2, vals3, names;
+    var data, vals2, vals3, lbllst, newnm;
     data = JSON.parse( unescape( window.location.search.slice( 1 ) ) );
-    if ( data.length !== 2 ){
+    if ( data.length !== 3 ){
 	return;
-}
-    vals2 = data[0];
-    vals3 = data[1];
+    }
+    lbllst = data[0];
+    vals2 = data[1];
+    vals3 = data[2];
+    charLab.A = lbllst[ 0 ];
+    charLab.B = lbllst[ 1 ];
     function fillF( v, n ){
 	if ( checkIntQ( v ) ){
-	    pieces[ n ].size = v;
-	    pieces[ n ].showSize = true;
+	    newnm = translateStrFrom( n );
+	    if ( newnm.length === n.length ){
+		pieces[ newnm ].size = v;
+		pieces[ newnm ].showSize = true;}
 	}
     }
     vals2.forEach( fillF );
+    vals3.forEach( fillF );
     passedVals3 = vals3;
 }
 
