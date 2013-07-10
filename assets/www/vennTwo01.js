@@ -12,9 +12,11 @@
 //functions:default
 /*global drawVenn, shadeRegion, reShadeAll, addColors, drawInkInd, setShadeClrFun */
 /*global reDrawAll, rePrintSizesAll, reDrawAll, cnvArc, checkIntQ */
-/*global puzzleMode, writeSize, toggleWSPuz */
+/*global puzzleMode:true, writeSize, toggleWSPuz, numCircles:true, setPuzBut */
 
 var cnv, cnvelm;
+
+numCircles = 2;
 
 rad = hght / 4;
 crcSep = rad;
@@ -226,7 +228,11 @@ cnvArc( posCent.B.x, posCent.B.y, rad, 2 * pi / 3, 4 * pi / 3, f ); },
 // list of all atomic pieces
 var lstAll = [ "AB", "Ab", "aB", "ab" ].sort();
 
-
+// generate smallSet from given region 
+function regToSS( reg ){
+    "use strict";
+    return ssUnion( reg.comprises );
+}
 
 pieces = {
     "AB": newCounty( [ "Ab", "Ba" ], [ true, true ],
@@ -264,11 +270,6 @@ pieces.AuB.sizeLine = function(){
     betterBezier( posCent.B.x, posCent.B.y - rad, 120, 300, this.sizeLoc.x, this.sizeLoc.y );
 };
 
-// generate smallSet from given region 
-function regToSS( reg ){
-    "use strict";
-    return ssUnion( reg.comprises );
-}
 
 smllst = emptySet.clone();
 pieces.ab.ss = smllst.spawn( [0] );
@@ -482,7 +483,6 @@ var numAtomic = lstAll.length;
 var numPieces = 8;
 
 
-
 //Translate from original label names to left = A and right = B.
 function translateLabelCharFrom( c ){
     "use strict";
@@ -495,6 +495,10 @@ function translateLabelCharFrom( c ){
 	res = "a";}
     else if ( c === charLab.B.toLowerCase() ){
 	res = "b";}
+    else if ( c === "u" ){
+	res = "u";}
+    else if ( c === "U" ){
+	res = "U";}
     return( res );
 }
 //Translate to original label names from left = A and right = B.
@@ -509,6 +513,10 @@ function translateLabelCharTo( c ){
 	res = charLab.A.toLowerCase();}
     else if ( c ===  "b"){
 	res = charLab.B.toLowerCase();}
+    else if ( c === "u" ){
+	res = "u";}
+    else if ( c === "U" ){
+	res = "U";}
     return( res );
 }
 
@@ -525,14 +533,14 @@ function packData(  ){
     "use strict";
     var data2, data3, datastr;
     data2 = {};
-    data2[ translateStrFrom( "A" ) ]  = pieces.A.size;
-    data2[ translateStrFrom( "B" ) ]  = pieces.B.size;
-    data2[ translateStrFrom( "AuB" ) ]  = pieces.AuB.size;
-    data2[ translateStrFrom( "U" ) ]  =	pieces.U.size;
-    data2[ translateStrFrom( "AB" ) ]  = pieces.AB.size;
+    data2[ translateStrTo( "A" ) ]  = pieces.A.size;
+    data2[ translateStrTo( "B" ) ]  = pieces.B.size;
+    data2[ translateStrTo( "AuB" ) ]  = pieces.AuB.size;
+    data2[ translateStrTo( "U" ) ]  =	pieces.U.size;
+    data2[ translateStrTo( "AB" ) ]  = pieces.AB.size;
 
     data3 = passedVals3;
-    datastr = JSON.stringify( [ data2, data3 ] );
+    datastr = JSON.stringify( [ data2, data3, puzzleMode ] );
     return escape( datastr );
 }
 
@@ -549,7 +557,7 @@ function fillPassedValues( ){
     "use strict";
     var data, vals2, vals3, lbllst, newnm;
     data = JSON.parse( unescape( window.location.search.slice( 1 ) ) );
-    if ( data.length !== 3 ){
+    if ( data.length !== 4 ){
 	return;
     }
     lbllst = data[0];
@@ -557,6 +565,9 @@ function fillPassedValues( ){
     vals3 = data[2];
     charLab.A = lbllst[ 0 ];
     charLab.B = lbllst[ 1 ];
+    puzzleMode = data[ 3 ];
+    setPuzBut();
+    //console.log( "puzzleMode = " + puzzleMode );
     function fillF( v, n ){
 	if ( checkIntQ( v ) ){
 	    newnm = translateStrFrom( n );

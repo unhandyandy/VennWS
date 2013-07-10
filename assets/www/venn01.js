@@ -10,9 +10,11 @@
 //functions:
 /*global drawVenn, shadeRegion, reShadeAll, addColors, drawInkInd, setShadeClrFun */
 /*global reDrawAll, rePrintSizesAll, reDrawAll, cnvArc */
-/*global drawSizeLine, ssUnion, checkIntQ, resetSizes, toggleMode, stackPop, stackPush, sizeFromSum, sizeFromDiff, toggleChooseMode, chooseMode, toggleWSPuz, writeSize */
+/*global drawSizeLine, ssUnion, checkIntQ, resetSizes, toggleMode, stackPop, stackPush, sizeFromSum, sizeFromDiff, toggleChooseMode, chooseMode, toggleWSPuz, writeSize, puzzleMode:true, numCircles:true, setPuzBut */
 
 var cnv, cnvelm;
+
+numCircles = 3;
 
 rad = hght / 4.3;
 crcSep = rad;
@@ -211,7 +213,7 @@ function mouseHandler( ev ){
     if ( reg === "" ){ return; }
     if ( mode === "Shade" ){
 	shadeRegion( reg );
-    } else {
+    } else if ( !puzzleMode || pieces[ reg ].size !== pieces[ reg ].sizeSecret ){
 	//if ( !pieces[ reg ].showSize ){
 	    pieces[ reg ].showSize = true;
 	    pieces[ reg ].printSize();
@@ -274,6 +276,12 @@ cnvArc( posCent.C.x, posCent.C.y, rad, 0, pi / 3, f ); },
 
 function nullFun(){
 "use strict";
+}
+
+// generate smallSet from given region 
+function regToSS( reg ){
+    "use strict";
+    return ssUnion( reg.comprises );
 }
 
 lstAll = [ "ABC", "ABc", "AbC", "Abc", "aBC", "aBc", "abC", "abc" ].sort();
@@ -374,11 +382,6 @@ pieces.AuBuC.sizeLine = function(){
     drawClover( x2, y2, 26 );
 };
 
-// generate smallSet from given region 
-function regToSS( reg ){
-    "use strict";
-    return ssUnion( reg.comprises );
-}
 
 smllst = emptySet.clone();
 pieces.abc.ss = smllst.spawn( [0] );
@@ -623,6 +626,7 @@ function whichTwo(){
 function packData(  ){
     "use strict";
     var data2, data3, datastr, lbllst;
+    localStorage.pieces  = JSON.stringify( pieces );
     lbllst = whichTwo();
     data2 = { 
 	     "Ab": ( checkIntQ( pieces.AbC.size ) && checkIntQ( pieces.Abc.size ) ) ? parseInt( pieces.AbC.size, 10 ) + parseInt( pieces.Abc.size, 10 ): "?",
@@ -632,14 +636,18 @@ function packData(  ){
 	     "aC": ( checkIntQ( pieces.aBC.size ) && checkIntQ( pieces.abC.size ) ) ? parseInt( pieces.aBC.size, 10 ) + parseInt( pieces.abC.size, 10 ) : "?",
 
 	     "bC": ( checkIntQ( pieces.AbC.size ) && checkIntQ( pieces.abC.size ) ) ? parseInt( pieces.AbC.size, 10 ) + parseInt( pieces.abC.size, 10 ): "?",
-	     "Bc": ( checkIntQ( pieces.aBc.size ) && checkIntQ( pieces.ABc.size ) ) ? parseInt( pieces.aBc.size, 10 ) + parseInt( pieces.ABc.size, 10 ) : "?"
+	     "Bc": ( checkIntQ( pieces.aBc.size ) && checkIntQ( pieces.ABc.size ) ) ? parseInt( pieces.aBc.size, 10 ) + parseInt( pieces.ABc.size, 10 ) : "?",
+
+	     "ab": ( checkIntQ( pieces.abC.size ) && checkIntQ( pieces.abc.size ) ) ? parseInt( pieces.abC.size, 10 ) + parseInt( pieces.abc.size, 10 ): "?",
+	     "ac": ( checkIntQ( pieces.abc.size ) && checkIntQ( pieces.aBc.size ) ) ? parseInt( pieces.abc.size, 10 ) + parseInt( pieces.aBc.size, 10 ): "?",
+	     "bc": ( checkIntQ( pieces.Abc.size ) && checkIntQ( pieces.abc.size ) ) ? parseInt( pieces.Abc.size, 10 ) + parseInt( pieces.abc.size, 10 ): "?"
 	   };
     data3 = {};
     function fillF( r, n ){
 	data3[ n ] = r.size;
     }
     pieces.forEach( fillF );
-    datastr = JSON.stringify( [ lbllst, data2, data3 ] );
+    datastr = JSON.stringify( [ lbllst, data2, data3, puzzleMode ] );
     return escape( datastr );
 }
 
@@ -652,14 +660,18 @@ function toTwo( ){
 // fill on values passed from other page 
 function fillPassedValues( ){
     "use strict";
-    var data, dataStr, vals2, vals3, datastr, names;
+    var data, dataStr, vals2, vals3, datastr, names, lspcs;
     dataStr = unescape( window.location.search.slice( 1 ) );
     if ( dataStr === "" ){ return; }
     data = JSON.parse( dataStr );
-    if ( data.length !== 2 ){ return; }
+    if ( data.length !== 3 ){ return; }
+    lspcs = JSON.parse( localStorage.pieces );
     vals2 = data[0];
     vals3 = data[1];
+    puzzleMode = data[ 2 ];
+    setPuzBut();
     function fillF( v, n ){
+	pieces[ n ].sizeSecret = lspcs[ n ].sizeSecret;
 	if ( checkIntQ( v ) ){
 	    pieces[ n ].size = v;
 	    pieces[ n ].showSize = true;

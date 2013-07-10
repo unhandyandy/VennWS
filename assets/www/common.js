@@ -11,7 +11,9 @@ var numOffV, numOffH, sin30, cos30, sqrt3, mode, memStack, smllst, emptySet;
 var drawVenn, shadeRegion, reShadeAll, addColors, drawInkInd, setShadeClrFun;
 var reDrawAll, rePrintSizesAll, reDrawAll, cnvArc, chooseMode;
 var uUnion = "\u222a", uInter = "\u2229"; 
-var puzzleMode = false, lstAll, numAtomic, numPieces;
+var puzzleMode, lstAll, numAtomic, numPieces, numCircles;
+
+if ( puzzleMode === undefined ){ puzzleMode = false; }
 
 // // set text (value option) of tag with ID id to value val
 // function setTagTxt( id, txt ){
@@ -60,7 +62,6 @@ wdth = windowWidth * 0.85;
 hght = windowHeight * 0.90;
 cntrHt = hght / 2;
 cntrWd = wdth / 2;
-
 
 colors = {};
 colors.a = "LightBlue";
@@ -133,7 +134,7 @@ bopts.text = "Shade";
 bopts.bgColor = "Orange";
 bopts.idtext = "btMode";
 controlsHTML += "<br><br><br><br>" + makeButt( bopts );
-bopts.text = "&cup;";
+bopts.text = "&cap;";
 bopts.bgColor = "Orange";
 bopts.idtext = "btChooseMode";
 controlsHTML += "<br>" + makeButt( bopts );
@@ -163,6 +164,11 @@ colorOps.comp = function( clr ){
 };
 
 
+//set label of Puzzle mode button
+function setPuzBut(){
+    "use strict";
+    setTagOpt( "btWSPuz", "value", puzzleMode ? "Puzzle" : "WS" );
+}
 
 // identify region name from list of elementary constituents 
 function idList( lst ){
@@ -529,6 +535,8 @@ function initPuzzle(){
     puzlst.forEach( function( x, i ){
 	x.size = x.sizeSecret;
 	x.showSize = true; } );
+
+    if ( mode !== "Size" ){ toggleMode(); }
     reDrawAll();
 }
 
@@ -544,7 +552,7 @@ function writeSize( reg ){
     y = reg.sizeLoc.y;
     cnv.font = 'italic 40px Times';
     cnv.fillStyle = "Black";
-    if ( puzzleMode && reg.sizeSecret !== parseInt( n, 10 ) ){
+    if ( puzzleMode && numCircles === 3 && reg.sizeSecret !== parseInt( n, 10 ) ){
 	    cnv.fillStyle = "Red";}
 
     cnv.fillText( String( n ), x - numOffH, y - numOffV );
@@ -554,7 +562,7 @@ function writeSize( reg ){
 function toggleWSPuz(){
     "use strict";
     puzzleMode = !puzzleMode;
-    setTagOpt( "btWSPuz", "value", puzzleMode ? "Puzzle" : "WS" );
+    setPuzBut();
     drawInkInd();
     if ( puzzleMode ){ initPuzzle(); }
 }
